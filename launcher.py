@@ -1,43 +1,312 @@
+import os
 import botpy
-from botpy import logging
 
-from botpy.message import DirectMessage
+from pathlib import Path
+
+from botpy.message import Message, DirectMessage, MessageAudit
+from botpy.reaction import Reaction
+from botpy.guild import Guild
+from botpy.channel import Channel
+from botpy.user import Member
+from botpy.interaction import Interaction
+from botpy.forum import Thread
+from botpy.types.forum import Post, Reply, AuditResult
+from botpy.audio import Audio
 
 from config import Config
+from .app.manager import Colors, load_all_plugins
 
 
-_log = logging.get_logger()
+logger = botpy.logging.get_logger()
 
 
-class MyClient(botpy.Client):
+class BotClient(botpy.Client):
+    """全局对象，用来管理所有插件的响应器
+
+    Args:
+        botpy (_type_): Client基类
+    """
+
     async def on_ready(self):
-        _log.info(f"机器人 「{self.robot.name}」 加载完成!")
+        """机器人准备好时调用
+        """
+        logger.info(f"机器人 「{Colors.green}{self.robot.name}{Colors.escape}」 加载完成!")
+
+    #############################################
+    # 公域消息事件，需订阅事件 public_guild_messages
+    #############################################
+
+    async def on_at_message_create(self, message: Message):
+        """@机器人的消息事件
+
+        Args:
+            message (Message): 消息对象
+        """
+
+    async def on_public_message_delete(self, message: Message):
+        """频道的消息被删除公域事件
+
+        Args:
+            message (Message): 消息对象
+        """
+        
+    #######################################################
+    # 私域消息事件，仅私域机器人可用，需订阅事件 guild_messages
+    #######################################################
+
+    async def on_message_create(self, message: Message):
+        """发送消息事件，代表频道内的全部消息，而不只是 at 机器人的消息。
+
+        Args:
+            message (Message): 消息对象
+        """
+
+    async def on_message_delete(self, message: Message):
+        """删除（撤回）消息事件
+
+        Args:
+            message (Message): 消息对象
+        """
+
+    ###################################
+    # 私信事件，需订阅事件 direct_message
+    ###################################
 
     async def on_direct_message_create(self, message: DirectMessage):
+        """私信消息事件
+
+        Args:
+            message (DirectMessage): 私信会话对象
+        """
         await self.api.post_dms(
             guild_id=message.guild_id,
             content=f"机器人{self.robot.name}收到你的私信了: {message.content}",
             msg_id=message.id,
         )
 
+    async def on_direct_message_delete(self, message: DirectMessage):
+        """私信删除（撤回）消息事件
+
+        Args:
+            message (DirectMessage): 私信会话对象
+        """
+
+    ##################################################
+    # 消息相关互动事件，需订阅事件 guild_message_reactions
+    ##################################################
+
+    async def on_message_reaction_add(self, reaction: Reaction):
+        """为消息添加表情表态事件
+
+        Args:
+            reaction (Reaction): 表情表态对象
+        """
+
+    async def on_message_reaction_remove(self, reaction: Reaction):
+        """为消息删除表情表态事件
+
+        Args:
+            reaction (Reaction): 表情表态对象
+        """
+
+    ###########################
+    # 频道事件，需订阅事件 guilds
+    ###########################
+
+    async def on_guild_create(self, guild: Guild):
+        """机器人加入新guild事件
+
+        Args:
+            guild (Guild): 频道对象
+        """
+
+    async def on_guild_update(self, guild: Guild):
+        """guild资料发生变更事件
+
+        Args:
+            guild (Guild): 频道对象
+        """
+
+    async def on_guild_delete(self, guild: Guild):
+        """机器人退出guild事件
+
+        Args:
+            guild (Guild): 频道对象
+        """
+    
+    async def on_channel_create(self, channel: Channel):
+        """channel被创建事件
+
+        Args:
+            channel (Channel): 子频道对象
+        """
+
+    async def on_channel_update(self, channel: Channel):
+        """channel被更新事件
+
+        Args:
+            channel (Channel): 子频道对象
+        """
+
+    async def on_channel_delete(self, channel: Channel):
+        """channel被删除事件
+
+        Args:
+            channel (Channel): 子频道对象
+        """
+
+    #####################################
+    # 频道成员事件，需订阅事件 guild_members
+    #####################################
+
+    async def on_guild_member_add(self, member: Member):
+        """成员加入事件
+
+        Args:
+            member (Member): 成员对象
+        """
+
+    async def on_guild_member_update(self, member: Member):
+        """成员资料发生变更事件
+
+        Args:
+            member (Member): 成员对象
+        """
+
+    async def on_guild_member_remove(self, member: Member):
+        """成员被移除事件
+
+        Args:
+            member (Member): 成员对象
+        """
+
+    ################################
+    # 互动事件，需订阅事件 interaction
+    ################################
+
+    async def on_interaction_create(self, interaction: Interaction):
+        """收到用户发给机器人的私信消息
+
+        Args:
+            interaction (Interaction): 互动事件
+        """
+
+    #####################################
+    # 消息审核事件，需订阅事件 message_audit
+    #####################################
+
+    async def on_message_audit_pass(self, message: MessageAudit):
+        """消息审核通过事件
+
+        Args:
+            message (MessageAudit): 消息审核事件
+        """
+
+    async def on_message_audit_reject(self, message: MessageAudit):
+        """消息审核不通过事件
+
+        Args:
+            message (MessageAudit): 消息审核事件
+        """
+
+    ##########################################
+    # 论坛事件，仅私域机器人可用，需订阅事件 forums
+    ##########################################
+
+    async def on_forum_thread_create(self, thread: Thread):
+        """用户创建主题事件
+
+        Args:
+            thread (Thread): 论坛对象
+        """
+
+    async def on_forum_thread_update(self, thread: Thread):
+        """用户更新主题事件
+
+        Args:
+            thread (Thread): 论坛对象
+        """
+
+    async def on_forum_thread_delete(self, thread: Thread):
+        """用户删除主题事件
+
+        Args:
+            thread (Thread): 论坛对象
+        """
+
+    async def on_forum_post_create(self, post: Post):
+        """用户创建帖子事件
+
+        Args:
+            post (Post): 论坛对象
+        """
+
+    async def on_forum_post_delete(self, post: Post):
+        """用户删除帖子事件
+
+        Args:
+            post (Post): 论坛对象
+        """
+
+    async def on_forum_reply_create(self, reply: Reply):
+        """用户回复评论事件
+
+        Args:
+            reply (Reply): 论坛对象
+        """
+
+    async def on_forum_reply_delete(self, reply: Reply):
+        """用户删除评论事件
+
+        Args:
+            reply (Reply): 论坛对象
+        """
+
+    async def on_forum_publish_audit_result(self, auditresult: AuditResult):
+        """用户发表审核通过事件
+
+        Args:
+            auditresult (AuditResult): 论坛对象
+        """
+
+    ##############################
+    # 音频事件，需订阅 audio_action
+    ##############################
+
+    async def on_audio_start(self, audio: Audio):
+        """音频开始播放事件
+
+        Args:
+            audio (Audio): 音频对象
+        """
+
+    async def on_audio_finish(self, audio: Audio):
+        """音频播放结束事件
+
+        Args:
+            audio (Audio): 音频对象
+        """
+
+    async def on_audio_on_mic(self, audio: Audio):
+        """上麦事件
+
+        Args:
+            audio (Audio): 音频对象
+        """
+
+    async def on_audio_off_mic(self, audio: Audio):
+        """下麦事件
+
+        Args:
+            audio (Audio): 音频对象
+        """
+
 
 if __name__ == "__main__":
-    # 通过预设置的类型，设置需要监听的事件通道
-    # intents = botpy.Intents.none()
-    # intents.public_guild_messages=True
-
-    # 通过kwargs，设置需要监听的事件通道
-    intents = botpy.Intents(
-        public_guild_messages=False,    # 公域消息事件
-        guild_messages=False,           # 消息事件 (仅 私域 机器人能够设置此 intents)
-        direct_message=True,            # 私信事件
-        guild_message_reactions=False,  # 消息相关互动事件
-        guilds=False,                   # 频道事件
-        guild_members=False,            # 频道成员事件
-        interaction=False,              # 互动事件
-        message_audit=False,            # 消息审核事件
-        forums=False,                   # 论坛事件 (仅 私域 机器人能够设置此 intents)
-        audio_action=False              # 音频事件
+    client = BotClient(intents=Config.intents)
+    load_all_plugins(
+        client,
+        launcher_path=Path(os.path.dirname(os.path.abspath(__file__))).resolve(),
+        plugin_dir=[os.path.dirname(__file__) + '/plugins']
     )
-    client = MyClient(intents=intents)
     client.run(appid=Config.appid, token=Config.token)

@@ -1,21 +1,22 @@
-import pkgutil, importlib, re, sys
+import botpy
+import pkgutil, importlib
 from traceback import print_exc
 from abc import abstractmethod, ABCMeta
 from pathlib import Path
 from botpy import logging
-from typing import Iterable, Optional, Set, Dict, List
+from typing import Iterable, Optional, Set, Dict
 
 logger = logging.get_logger()
 
 class Colors:
     # 清除格式
-    escape          = "\033[0m"
+    escape              = "\033[0m"
 
     # 前景色
-    black           = "\033[0;30m"
-    dark_gray       = "\033[1;30m"
-    black_underline = "\033[4;30m"
-    black_blink     = "\033[5;30m"
+    black               = "\033[0;30m"
+    dark_gray           = "\033[1;30m"
+    black_underline     = "\033[4;30m"
+    black_blink         = "\033[5;30m"
 
     blue                = "\033[0;34m"
     light_blue          = "\033[1;34m"
@@ -54,6 +55,29 @@ class Colors:
 
 
 # TODO: 事件响应器基类
+class HandlerInterface:
+    pass
+
+
+def load_all_plugins(
+        client: botpy.Client,
+        launcher_path: Path,
+        module_path: Optional[Iterable[str]] = None,
+        plugin_dir: Optional[Iterable[str]] = None
+) -> None:
+    """
+    Load all the plugins from the list of module_path
+    and the plugins under the folder of each plugin_dir in the list.
+    Ignoring plugins that starts with `_`
+
+    Params:
+        app: the flask application that need to load plugins
+        launcher_path: resolved path to the folder of launcher.py
+        module_path: list of plugins
+        plugin_dir: list of path that contains plugins
+    """
+    PluginManager(client, launcher_path, module_path, plugin_dir).load_all_plugins()
+
 
 
 def path_to_module_name(launcher_path: Path, path: Path) -> str:
@@ -83,10 +107,12 @@ class PluginManager:
 
     def __init__(
             self,
+            client: botpy.Client,
             launcher_path: Path,
             plugins: Optional[Iterable[str]] = None,
             search_path: Optional[Iterable[str]] = None
     ) -> None:
+        self.client = client
         self.launcher_path = launcher_path
         self.plugins: Set[str] = set(plugins or [])
         self.search_path: Set[str] = set(search_path or [])
@@ -183,10 +209,10 @@ class PluginManager:
             # TODO: 在这里注册事件响应器handler
                 
         except Exception as e:
+            print_exc()
             logger.error(
                 f'{Colors.red}Failed to import{Colors.escape} "{Colors.light_blue}{name}{Colors.escape}"!'
             )
-            print(e.with_traceback())
             exit(e)
 
     def load_all_plugins(self):
