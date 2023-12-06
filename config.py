@@ -16,4 +16,4 @@ class Config:
     )
 
     appid = "102077494"                             # 机器人id
-    token = "UXmw3hcpVkUAOHtW41FHrfQFYTiAGrFp"      # 机器人token
+    token = "UXmw3hcpVkUAOHtW41FHrfQFYTiAGrFp"      # 机器人令牌
