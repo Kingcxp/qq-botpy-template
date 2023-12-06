@@ -54,8 +54,8 @@ class Colors:
     gray_blink          = "\033[5;37m"
 
 
-# TODO: 事件响应器基类
-class HandlerInterface:
+class HandlerInterface(metaclass=ABCMeta):
+    # TODO
     pass
 
 
