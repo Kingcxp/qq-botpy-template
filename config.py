@@ -15,5 +15,5 @@ class Config:
         audio_action=False                          # 音频事件
     )
 
-    appid = "102077494"                             # 机器人id
-    token = "UXmw3hcpVkUAOHtW41FHrfQFYTiAGrFp"      # 机器人令牌
+    appid = "your_id"                               # 机器人id
+    token = "your_token"                            # 机器人令牌
