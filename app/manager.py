@@ -1,7 +1,6 @@
 import botpy
 import pkgutil, importlib
 from traceback import print_exc
-from abc import abstractmethod, ABCMeta
 from pathlib import Path
 from botpy import logging
 from typing import Iterable, Optional, Set, Dict
@@ -52,11 +51,6 @@ class Colors:
     white               = "\033[1;37m"
     gray_underline      = "\033[4;37m"
     gray_blink          = "\033[5;37m"
-
-
-class HandlerInterface(metaclass=ABCMeta):
-    # TODO
-    pass
 
 
 def load_all_plugins(
