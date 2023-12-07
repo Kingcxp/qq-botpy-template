@@ -15,8 +15,7 @@ from botpy.types.forum import Post, Reply, AuditResult
 from botpy.audio import Audio
 
 from config import Config
-from .app.interface import HandlerInterface
-from .app.manager import Colors, load_all_plugins
+from app import HandlerInterface, Colors, load_all_plugins
 
 
 logger = botpy.logging.get_logger()
@@ -85,7 +84,7 @@ class BotClient(botpy.Client):
         for api in self.all_apis:
             self.handlers[api].sort(key=lambda x: x[0])
         for handler in self.handlers["on_ready"]:
-            await handler[2]()
+            await handler[2](self)
         logger.info(f"机器人 「{Colors.green}{self.robot.name}{Colors.escape}」 加载完成!")
 
     #############################################
@@ -99,11 +98,11 @@ class BotClient(botpy.Client):
             message (Message): 消息对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     async def on_public_message_delete(self, message: Message):
@@ -113,11 +112,11 @@ class BotClient(botpy.Client):
             message (Message): 消息对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
         
     #######################################################
@@ -131,11 +130,11 @@ class BotClient(botpy.Client):
             message (Message): 消息对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     async def on_message_delete(self, message: Message):
@@ -145,11 +144,11 @@ class BotClient(botpy.Client):
             message (Message): 消息对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     ###################################
@@ -162,17 +161,12 @@ class BotClient(botpy.Client):
         Args:
             message (DirectMessage): 私信会话对象
         """
-        # await self.api.post_dms(
-        #     guild_id=message.guild_id,
-        #     content=f"机器人{self.robot.name}收到你的私信了: {message.content}",
-        #     msg_id=message.id,
-        # )
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     async def on_direct_message_delete(self, message: DirectMessage):
@@ -182,11 +176,11 @@ class BotClient(botpy.Client):
             message (DirectMessage): 私信会话对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     ##################################################
@@ -200,11 +194,11 @@ class BotClient(botpy.Client):
             reaction (Reaction): 表情表态对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](reaction)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, reaction)
+            if do_continue:
                 break
 
     async def on_message_reaction_remove(self, reaction: Reaction):
@@ -214,11 +208,11 @@ class BotClient(botpy.Client):
             reaction (Reaction): 表情表态对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](reaction)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, reaction)
+            if do_continue:
                 break
 
     ###########################
@@ -232,11 +226,11 @@ class BotClient(botpy.Client):
             guild (Guild): 频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](guild)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, guild)
+            if do_continue:
                 break
 
     async def on_guild_update(self, guild: Guild):
@@ -246,11 +240,11 @@ class BotClient(botpy.Client):
             guild (Guild): 频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](guild)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, guild)
+            if do_continue:
                 break
 
     async def on_guild_delete(self, guild: Guild):
@@ -260,11 +254,11 @@ class BotClient(botpy.Client):
             guild (Guild): 频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](guild)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, guild)
+            if do_continue:
                 break
     
     async def on_channel_create(self, channel: Channel):
@@ -274,11 +268,11 @@ class BotClient(botpy.Client):
             channel (Channel): 子频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](channel)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, channel)
+            if do_continue:
                 break
 
     async def on_channel_update(self, channel: Channel):
@@ -288,11 +282,11 @@ class BotClient(botpy.Client):
             channel (Channel): 子频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](channel)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, channel)
+            if do_continue:
                 break
 
     async def on_channel_delete(self, channel: Channel):
@@ -302,11 +296,11 @@ class BotClient(botpy.Client):
             channel (Channel): 子频道对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](channel)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, channel)
+            if do_continue:
                 break
 
     #####################################
@@ -320,11 +314,11 @@ class BotClient(botpy.Client):
             member (Member): 成员对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](member)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, member)
+            if do_continue:
                 break
 
     async def on_guild_member_update(self, member: Member):
@@ -334,11 +328,11 @@ class BotClient(botpy.Client):
             member (Member): 成员对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](member)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, member)
+            if do_continue:
                 break
 
     async def on_guild_member_remove(self, member: Member):
@@ -348,11 +342,11 @@ class BotClient(botpy.Client):
             member (Member): 成员对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](member)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, member)
+            if do_continue:
                 break
 
     ################################
@@ -366,11 +360,11 @@ class BotClient(botpy.Client):
             interaction (Interaction): 互动事件
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](interaction)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, interaction)
+            if do_continue:
                 break
 
     #####################################
@@ -384,11 +378,11 @@ class BotClient(botpy.Client):
             message (MessageAudit): 消息审核事件
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     async def on_message_audit_reject(self, message: MessageAudit):
@@ -398,11 +392,11 @@ class BotClient(botpy.Client):
             message (MessageAudit): 消息审核事件
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](message)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, message)
+            if do_continue:
                 break
 
     ##########################################
@@ -416,11 +410,11 @@ class BotClient(botpy.Client):
             thread (Thread): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](thread)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, thread)
+            if do_continue:
                 break
 
     async def on_forum_thread_update(self, thread: Thread):
@@ -430,11 +424,11 @@ class BotClient(botpy.Client):
             thread (Thread): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](thread)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, thread)
+            if do_continue:
                 break
 
     async def on_forum_thread_delete(self, thread: Thread):
@@ -444,11 +438,11 @@ class BotClient(botpy.Client):
             thread (Thread): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](thread)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, thread)
+            if do_continue:
                 break
 
     async def on_forum_post_create(self, post: Post):
@@ -458,11 +452,11 @@ class BotClient(botpy.Client):
             post (Post): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](post)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, post)
+            if do_continue:
                 break
 
     async def on_forum_post_delete(self, post: Post):
@@ -472,11 +466,11 @@ class BotClient(botpy.Client):
             post (Post): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](post)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, post)
+            if do_continue:
                 break
 
     async def on_forum_reply_create(self, reply: Reply):
@@ -486,11 +480,11 @@ class BotClient(botpy.Client):
             reply (Reply): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](reply)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, reply)
+            if do_continue:
                 break
 
     async def on_forum_reply_delete(self, reply: Reply):
@@ -500,11 +494,11 @@ class BotClient(botpy.Client):
             reply (Reply): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](reply)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, reply)
+            if do_continue:
                 break
 
     async def on_forum_publish_audit_result(self, auditresult: AuditResult):
@@ -514,11 +508,11 @@ class BotClient(botpy.Client):
             auditresult (AuditResult): 论坛对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](auditresult)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, auditresult)
+            if do_continue:
                 break
 
     ##############################
@@ -532,11 +526,11 @@ class BotClient(botpy.Client):
             audio (Audio): 音频对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](audio)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, audio)
+            if do_continue:
                 break
 
     async def on_audio_finish(self, audio: Audio):
@@ -546,11 +540,11 @@ class BotClient(botpy.Client):
             audio (Audio): 音频对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](audio)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, audio)
+            if do_continue:
                 break
 
     async def on_audio_on_mic(self, audio: Audio):
@@ -560,11 +554,11 @@ class BotClient(botpy.Client):
             audio (Audio): 音频对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](audio)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, audio)
+            if do_continue:
                 break
 
     async def on_audio_off_mic(self, audio: Audio):
@@ -574,19 +568,20 @@ class BotClient(botpy.Client):
             audio (Audio): 音频对象
         """
         func_name = sys._getframe().f_code.co_name
-        logger.info(f"Received event {Colors.light_blue}{func_name}{Colors.escape}!")
+        logger.info(f"收到事件 {Colors.light_blue}{func_name}{Colors.escape}!")
         for handler in self.handlers[func_name]:
-            logger.info(f"Event will be handled by {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} (with priority {Colors.green}{Colors.escape})...")
-            do_continue = handler[2](audio)
-            if not do_continue:
+            logger.info(f"事件将被 {Colors.yellow}{handler[1]}{Colors.escape}.{Colors.light_blue}{func_name}{Colors.escape} 响应器处理 (优先级：{Colors.green}{handler[0]}{Colors.escape})...")
+            do_continue = await handler[2](self, audio)
+            if do_continue:
                 break
 
 
 if __name__ == "__main__":
+    os.remove(os.path.dirname(__file__) + "/botpy.log")
     client = BotClient(intents=Config.intents)
     load_all_plugins(
         client,
         launcher_path=Path(os.path.dirname(os.path.abspath(__file__))).resolve(),
-        plugin_dir=[os.path.dirname(__file__) + '/plugins']
+        plugin_dir=[os.path.dirname(__file__) + '/app/plugins']
     )
     client.run(appid=Config.appid, token=Config.token)

@@ -1,8 +1,8 @@
-import botpy
-import pkgutil, importlib
+import pkgutil
+import importlib
+from botpy import Client, logging
 from traceback import print_exc
 from pathlib import Path
-from botpy import logging
 from typing import Iterable, Optional, Set, Dict
 
 logger = logging.get_logger()
@@ -54,7 +54,7 @@ class Colors:
 
 
 def load_all_plugins(
-        client: botpy.Client,
+        client: Client,
         launcher_path: Path,
         module_path: Optional[Iterable[str]] = None,
         plugin_dir: Optional[Iterable[str]] = None
@@ -70,6 +70,7 @@ def load_all_plugins(
         module_path: list of plugins
         plugin_dir: list of path that contains plugins
     """
+    logger.info(f"{Colors.light_green}加载插件中...{Colors.escape}")
     PluginManager(client, launcher_path, module_path, plugin_dir).load_all_plugins()
 
 
@@ -101,13 +102,13 @@ class PluginManager:
 
     def __init__(
             self,
-            client: botpy.Client,
+            client: Client,
             launcher_path: Path,
             plugins: Optional[Iterable[str]] = None,
             search_path: Optional[Iterable[str]] = None
     ) -> None:
-        self.client = client
-        self.launcher_path = launcher_path
+        self.client: Client = client
+        self.launcher_path: Path = launcher_path
         self.plugins: Set[str] = set(plugins or [])
         self.search_path: Set[str] = set(search_path or [])
 
@@ -149,8 +150,8 @@ class PluginManager:
 
         for module_info in pkgutil.iter_modules(self.search_path):
             if module_info.name.startswith('_'):
-                logger.opt(colors=True).info(
-                    f'{Colors.light_red}Ignored{Colors.escape} module "{Colors.light_blue}{module_info.name}{Colors.escape}"'
+                logger.info(
+                    f'{Colors.light_red}忽略了{Colors.escape}模块 "{Colors.light_blue}{module_info.name}{Colors.escape}"'
                 )
                 continue
             if (
@@ -158,7 +159,7 @@ class PluginManager:
                     or module_info.name in third_party_plugins
             ):
                 raise RuntimeError(
-                    f'Plugin already exists: "{Colors.light_blue}{module_info.name}{Colors.escape}"! Check you plugin name.'
+                    f'插件已经存在: "{Colors.light_blue}{module_info.name}{Colors.escape}" ！请检查你的插件名称。'
                 )
 
             if not (
@@ -192,20 +193,20 @@ class PluginManager:
                     path_to_module_name(self.launcher_path, self._searched_plugin_names[name])
                 )
             else:
-                raise RuntimeError(f"Plugin not found: {name}! Check your plugin name.")
+                raise RuntimeError(f"没有找到插件: {name}！ 请检查你的插件名称。")
 
-            logger.success(
-                f'{Colors.green}Succeeded{Colors.escape} to import "{Colors.light_blue}{name}{Colors.escape}"'
+            logger.info(
+                f'{Colors.green}成功加载插件{Colors.escape} "{Colors.light_blue}{name}{Colors.escape}"!'
             )
             if (handler := getattr(module, "__handler__", None)) is None:
-                logger.error(f'Module "{Colors.light_blue}{name}{Colors.escape} is not loaded as a plugin!"')
-                logger.error(f'Make sure the __handler__ variable is correct')
-            # TODO: 在这里注册事件响应器handler
+                logger.error(f'模块 "{Colors.light_blue}{name}{Colors.escape}" 并没有被加载成一个插件！')
+                logger.error(f'请确保 "{Colors.light_purple}__handler__{Colors.escape}" 变量设置正确！')
+            self.client.register(handler=handler)
                 
         except Exception as e:
             print_exc()
             logger.error(
-                f'{Colors.red}Failed to import{Colors.escape} "{Colors.light_blue}{name}{Colors.escape}"!'
+                f'{Colors.red}插件{Colors.escape} "{Colors.light_blue}{name}{Colors.escape}" {Colors.red}加载失败！{Colors.escape}'
             )
             exit(e)
 

@@ -1,0 +1,10 @@
+# editor folders
+.vscode/
+.vs/
+.idea/
+
+# log file
+botpy.log
+
+# pycache
+__pycache__/
