@@ -577,7 +577,10 @@ class BotClient(botpy.Client):
 
 
 if __name__ == "__main__":
-    os.remove(os.path.dirname(__file__) + "/botpy.log")
+    try:
+        os.remove(os.path.dirname(__file__) + "/botpy.log")
+    except FileNotFoundError:
+        pass
     client = BotClient(intents=Config.intents)
     load_all_plugins(
         client,
